@@ -54,7 +54,7 @@ app.post('/posts', (req, res) => {
     author: req.body.author,
     created: req.body.created
   })
-    .then(post => res.status(201).json(post.serialize())
+    .then(post => res.status(201).json(post.serialize()))
     .catch(err => {
       console.error(err);
       res.status(400).json({message: "Internal server error"});
