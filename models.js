@@ -2,7 +2,7 @@
 
 const mongoose = require('mongoose');
 
-blogSchema = mongoose.Schema({
+const blogSchema = mongoose.Schema({
   title: {type: String, required: true},
   content: {type: String, required: true},
   author: {
