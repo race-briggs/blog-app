@@ -17,10 +17,13 @@ blogSchema.virtual("authorName").get(function(){
 });
 
 blogSchema.methods.serialize = function() {
-  title: this.title,
-  content: this.content,
-  author: this.authorName,
-  created: this.created
+  return  {
+    id: this._id,
+    title: this.title,
+    content: this.content,
+    author: this.authorName,
+    created: this.created
+  };
 };
 
 const Post = mongoose.model("Post", blogSchema);
