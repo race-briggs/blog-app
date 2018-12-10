@@ -50,7 +50,7 @@ app.post('/posts', (req, res) => {
 
   let author = {};
 
-  Author.findById(req.body.author_id)
+  Author.findById(req.params.author_id)
     .then(res => {
       console.log('Author found')
       author = res.body;
@@ -91,7 +91,7 @@ app.put('/posts/:id', (req, res) => {
   });
 
   Post.findByIdAndUpdate(req.params.id, {$set: toUpdate})
-    .then(res => res.status(204).json(res.serialize())
+    .then(post => res.status(204).json(post.serialize())
     .catch(err => {
       console.error(err);
       res.status(500).json({message: "Internal server error"});
@@ -104,6 +104,98 @@ app.delete('/posts/:id', (req, res) => {
     .then(res => res.status(204).end())
     .catch(error => res.status(500).json({message: "Internal server error"}));
 });
+
+app.get('/authors', (req, res) => {
+  Author.find()
+    .limit(10)
+    .then(authors => {
+      res.status(200).json({
+        authors: authors.map(authors.serialize())
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({message: 'Internal server error'});
+    });
+});
+
+app.get('/authors/:id', (req, res) => {
+  Author.findById(req.params.id)
+    .then(author => {
+      res.status(200).json(author.serialize());
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({message: 'Internal server error'});
+    });
+});
+
+app.post('/authors', (req, res) => {
+  let requiredFields = ['firstName', 'lastName', 'userName'];
+  for(let i = 0; i < requiredFields.length; i++){
+    let field = requiredFields[i];
+    if(!(field in req.body)){
+      let message = `Missing ${field} in request body`;
+      console.log(message);
+      res.status(400).send(message);
+    };
+  };
+
+  Author.create({
+    firstName: req.body.firstName;
+    lastName: req.body.lastName;
+    userName: req.body.userName
+  })
+  .then(author => {
+    res.status(201).json(author.serialize());
+  })
+  .catch(err => {
+    console.error(err)
+    res.status(500).json({message: 'Internal server error'});
+  });
+});
+
+app.put('/authors/:id', (req, res) => {
+  if(!(req.body.id && req.params.id === req.body.id)){
+    const message = `Request path id (${req.params.id}) must match request body id (${req.body.id})`;
+    console.error(message);
+    return res.status(400).json({message});
+  };
+
+  let toUpdate = [];
+  let updateableFields = ['firstName', 'lastName', 'userName'];
+
+  updateableFields.forEach(field => {
+    if(field in req.body){
+      toUpdate[field] = req.body[field];
+    };
+  });
+
+  //checking to see if userName is already taken
+  Author.find({userName: req.body.userName})
+    .then(author => {
+      res.status(400).json({message: 'That username is already in use. Please choose another.'});
+    });
+
+  Author.findByIdAndUpdate(req.params.id, {$set: toUpdate})
+    .then(author => res.status(204).json(author.serialize())
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({message: "Internal server error"});
+    });
+});
+
+app.delete('/authors/:id', (req, res) => {
+  Post.deleteMany({author_id: req.params.id})
+  Author.findByIdAndRemove(req.params.id)
+  .then(res => {
+    res.status(204).end();
+  })
+  .catch(err => {
+    res.status(500).json({message: 'Internal server error'});
+  });
+});
+
 
 //catch all endpoint for non-existant endpoint requests
 app.use('*', (req, res) => {

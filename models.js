@@ -46,6 +46,14 @@ blogSchema.methods.serialize = function() {
   };
 };
 
+authorSchema.methods.serialize = function() {
+  return {
+    id: this._id,
+    name: `${this.firstName} ${this.lastName}`,
+    userName: this.userName
+  };
+};
+
 const Author = mongoose.model("Author", authorSchema);
 const Post = mongoose.model("Post", blogSchema);
 
