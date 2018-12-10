@@ -30,7 +30,7 @@ blogSchema.pre('find', function(next){
   next();
 });
 
-blogSchema.pre('findOne', function(next){
+blogSchema.pre('findById', function(next){
   this.populate('author');
   next();
 });
@@ -41,6 +41,7 @@ blogSchema.methods.serialize = function() {
     title: this.title,
     content: this.content,
     author: this.authorName,
+    comments: this.comments,
     created: this.created
   };
 };

@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
 const { PORT, DATABASE_URL } = require('./config');
-const { Post } = require('./models');
+const { Post, Author } = require('./models');
 
 const app = express();
 app.use(express.json());
@@ -38,7 +38,7 @@ app.get('/posts/:id', (req, res) => {
 
 //create post
 app.post('/posts', (req, res) => {
-  let requiredFields = ["title", "content", "author", "created"];
+  let requiredFields = ["title", "content", "author_id", "created"];
   for(let i = 0; i < requiredFields.length; i++){
     let field = requiredFields[i];
     if(!(field in req.body)){
@@ -48,10 +48,23 @@ app.post('/posts', (req, res) => {
     };
   };
 
+  let author = {};
+
+  Author.findById(req.body.author_id)
+    .then(res => {
+      console.log('Author found')
+      author = res.body;
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(400).json({message: 'Author not found in database collection'});
+    });
+
+
   Post.create({
     title: req.body.title,
     content: req.body.content,
-    author: req.body.author,
+    author: author,
     created: req.body.created
   })
     .then(post => res.status(201).json(post.serialize()))
@@ -78,7 +91,7 @@ app.put('/posts/:id', (req, res) => {
   });
 
   Post.findByIdAndUpdate(req.params.id, {$set: toUpdate})
-    .then(res => res.status(204).end())
+    .then(res => res.status(204).json(res.serialize())
     .catch(err => {
       console.error(err);
       res.status(500).json({message: "Internal server error"});
